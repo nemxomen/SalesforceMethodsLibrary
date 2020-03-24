@@ -66,6 +66,7 @@ import com.sforce.soap.metadata.FileProperties;
 import com.sforce.soap.metadata.ListMetadataQuery;
 import com.sforce.soap.metadata.MetadataConnection;
 import com.sforce.soap.metadata.ValueTypeField;
+import com.sforce.soap.partner.DeleteResult;
 import com.sforce.soap.partner.DescribeSObjectResult;
 import com.sforce.soap.partner.Field;
 import com.sforce.soap.partner.LoginResult;
@@ -87,18 +88,19 @@ import com.sforce.ws.bind.XmlObject;
  * 
  * @author raman kansal
  * 
- *
+ * In order for email functions to work you will need to update to an open smtphost
  */
 
 
 public class GeneralMethods {
 
+	
 	public PartnerConnection sfdcPartner;
 	public ToolingConnection sfdcTooling;
 	public MetadataConnection sfdcMetadata;
 	public static PartnerConnection sfdcPartnerStatic;
 	public String[] sourceCredential = { "https://test.salesforce.com/services/Soap/u/46.0", "username", "password" };
-	public static String smtp_host="mail.internal.salesforce.com";
+	public static String smtp_host="mail.internal.server.com";
 	public static HashMap<String, String> headerToValidHeaderMap = new HashMap<String, String>();
 	public static TimeZone tz = TimeZone.getTimeZone("PST");
 
@@ -115,7 +117,7 @@ public class GeneralMethods {
 		setCrendential(credential);
 
 	}
-	
+
 	/**
 	 * Checks to see if a PartnerConnection is open already
 	 * 
@@ -146,7 +148,7 @@ public class GeneralMethods {
 	 * @param check ToolingConnection
 	 * @return Boolean
 	 */
-	
+
 	public boolean checkConnectionOpen(ToolingConnection check) {
 
 		try {
@@ -171,7 +173,7 @@ public class GeneralMethods {
 	 * @param check MetadataConnection
 	 * @return Boolean
 	 */
-	
+
 	public boolean checkConnectionOpen(MetadataConnection check) {
 
 		try {
@@ -199,7 +201,7 @@ public class GeneralMethods {
 	 * @return List<SObject> 
 	 * @throws ConnectionException
 	 */
-	
+
 	//query method to gather all records for any query passed for salesforce, need a partner connection and query for this to work
 	public static List<SObject> queryRecords(PartnerConnection connection, String soqlQuery) throws ConnectionException {
 		List<SObject> records = new  ArrayList<SObject>();
@@ -215,13 +217,13 @@ public class GeneralMethods {
 					while (!done) {
 
 						records.addAll(Arrays.asList(qResult.getRecords()));
-		
+
 						if (qResult.isDone()) {
 							done = true;
 							return records;
 						} else {
 							qResult = connection.queryMore(qResult.getQueryLocator());
-							
+
 						}
 					} 
 				}
@@ -246,7 +248,7 @@ public class GeneralMethods {
 			}
 		}
 	}
-	
+
 	/**
 	 *  Non static Query method to gather all records for any query passed for salesforce, need a partner connection and query for this to work
 	 * 
@@ -258,6 +260,7 @@ public class GeneralMethods {
 
 	//query method to gather all records for any query passed for salesforce, need a partner connection and query for this to work
 	public List<SObject> queryRecords(String soqlQuery) throws ConnectionException {
+		setPartnerConnection();
 		List<SObject> records = new  ArrayList<SObject>();
 		QueryResult qResult = null;
 		while(true){
@@ -305,7 +308,7 @@ public class GeneralMethods {
 			}
 		}
 	}
-	
+
 	/**
 	 * Gets all fields mapped as a HashSet given an SObject with correct notation
 	 * fields are mapped as .notation for multiple relationsips
@@ -339,7 +342,7 @@ public class GeneralMethods {
 		return fieldList;
 
 	}
-	
+
 	/**
 	 * Child method for getAllFields methods
 	 *
@@ -390,7 +393,7 @@ public class GeneralMethods {
 		}
 
 	}
-	
+
 	/**
 	 * Given an SObject and fieldname we walk the SObject to get the proper name
 	 * @param so SObject
@@ -417,7 +420,7 @@ public class GeneralMethods {
 		return fullField;
 
 	}
-	
+
 	/**
 	 * Given an SObject and fieldname we walk the SObject to get the proper name
 	 * @param so SObject
@@ -439,7 +442,7 @@ public class GeneralMethods {
 		System.out.printf("Unable to find %s", name);
 		return null;
 	}
-	
+
 	//builds up a key value map per field, then builds a list, this effectively reduces any error when reading sobjects and manipulating later
 	public static ArrayList<HashMap<String,String>> readSobjectList(List<SObject> queryResults) {
 
@@ -681,41 +684,41 @@ public class GeneralMethods {
 
 	}
 
-	
+
 	//sort data
 	private static List<String> sortFromOrignalQuery(String soql, List<String> list) {
 		// TODO Auto-generated method stub
 		HashMap<Integer,String> map = new HashMap<Integer,String> ();
-        
+
 		for(String s : list) {
 			int i = soql.toLowerCase().indexOf(s.toLowerCase());
-			
+
 			map.put(i, s);
 		}
-		
+
 		// TreeMap to store values of HashMap 
-        TreeMap<Integer,String>  sorted = new TreeMap<>(); 
-  
-        // Copy all data from hashMap into TreeMap 
-        sorted.putAll(map); 
-        
-        ArrayList<String> values = new ArrayList<String>(sorted.values());
-        
-        return values;
-		
+		TreeMap<Integer,String>  sorted = new TreeMap<>(); 
+
+		// Copy all data from hashMap into TreeMap 
+		sorted.putAll(map); 
+
+		ArrayList<String> values = new ArrayList<String>(sorted.values());
+
+		return values;
+
 	}
 
 	//convert arrays for printing 
-	
+
 	public static void printLineArray(String[] stringArray) {
-	      StringBuffer sb = new StringBuffer();
-	      for(int i = 0; i < stringArray.length; i++) {
-	         sb.append(stringArray[i]);
-	      }
-	      String str = Arrays.toString(stringArray);
-	     
-	      System.out.println(str);
-	   
+		StringBuffer sb = new StringBuffer();
+		for(int i = 0; i < stringArray.length; i++) {
+			sb.append(stringArray[i]);
+		}
+		String str = Arrays.toString(stringArray);
+
+		System.out.println(str);
+
 	}
 	//quick query result, not meant for many records
 	public static QueryResult query(PartnerConnection stub, String query) throws RemoteException, ConnectionException {
@@ -1388,7 +1391,7 @@ public class GeneralMethods {
 		System.out.println("File written out to: " + filepath);
 		return;
 	}
-	
+
 	//get endpoint login returns something like this https://org62.my.salesforce.com
 	public static String getEndPoint(PartnerConnection pc) {
 		String endPoint = null;
@@ -1397,7 +1400,7 @@ public class GeneralMethods {
 		return endPoint;
 
 	}
-	
+
 	//new method can be created for full public visibility for files using ContentDistribution
 
 	public static String setContentDistribution(String id){
@@ -1427,7 +1430,7 @@ public class GeneralMethods {
 	//call this method to set company viewing on your document
 	public String pushContentDocumentLink(String id) throws ConnectionException, IOException {
 		setPartnerConnection ();
-		
+
 		String newId = null;
 		String LinkedEntityId = getLinkedEntityId();
 
@@ -1472,7 +1475,7 @@ public class GeneralMethods {
 	public String getOrgId() throws ConnectionException {
 		// TODO Auto-generated method stub
 		setPartnerConnection();
-		
+
 		String id = null;
 		id=sfdcPartner.getUserInfo().getOrganizationId();
 		return id;
@@ -1481,7 +1484,7 @@ public class GeneralMethods {
 	public String getContentDocumentid(String id) throws ConnectionException {
 		// TODO Auto-generated method stub
 		setPartnerConnection ();
-		
+
 		String cDID =null;
 		String contentQuery = String.format("SELECT ContentDocumentId FROM ContentVersion where id ='%s' limit 1",id);
 
@@ -1803,7 +1806,7 @@ public class GeneralMethods {
 		// TODO Auto-generated method stub
 		return u.toLowerCase().replaceAll("@salesforce.com", "").replaceAll("\\+","").replaceAll("\\-","").replaceAll("\\_","").replaceAll("\\/","").replaceAll("\\:", "").replaceAll("\\&","").replaceAll("\\(", "").replaceAll("\\)","").replaceAll("\\.", "");
 	}
-	
+
 
 	//method to do a forupdate against all data from file, each field type needs to be parsed correctly and added to list of sobjects
 	public static ArrayList<SObject> setRecordsForUpdate(ArrayList<HashMap<String, String>> records, String objectType, HashMap<String, String> validHeadersToType, HashMap<String, String> headerToValidHeaderMap) throws ConnectionException, ParseException {
@@ -1873,7 +1876,7 @@ public class GeneralMethods {
 		double d = Double.parseDouble(v);
 		return d;
 	}
-	
+
 	//method for doubles
 	public static double setDouble(String v)throws ParseException, NumberFormatException, NullPointerException{
 		// TODO Auto-generated method stub
@@ -1948,21 +1951,21 @@ public class GeneralMethods {
 	}
 
 	//soap call at 200 records a batch
-	public static SaveResult[] updateRecords(PartnerConnection connection, ArrayList<SObject> finalList) throws ConnectionException {
+	public static ArrayList<SaveResult[]> updateRecords(PartnerConnection connection, ArrayList<SObject> finalList) throws ConnectionException {
+		ArrayList<SaveResult[]> srsAll= new ArrayList<SaveResult[]>();
 		SaveResult[] srs=null;
 		int listSize = finalList.size();
 		for (int batch = 0; finalList.size()>batch;){
-			//firstid = list.get(list.size()==0?0:list.size()-1);
-			List<SObject> batchList = finalList.subList(batch, batch = batch + 200 >listSize-1 ? listSize : batch + 200 );
-			srs = connection.update(batchList.toArray(new SObject[0]));
-			//SaveResult[] srs = connection.update(finalList.toArray(new SObject[0]));
 
+			List<SObject> batchList = finalList.subList(batch, batch = batch + 200 >listSize-1 ? listSize : batch + 200 );
+			srsAll.add(connection.update(batchList.toArray(new SObject[0])));
 
 			System.out.printf("Received %d SaveResults back\n", srs.length);
 			int srIndex = 0;
 			for (SaveResult sr : srs) {
 				if (!sr.isSuccess()) {
 					SObject mo = finalList.get(srIndex);
+					sr.setId(mo.getField("Id").toString());
 					System.out.printf("Error Updating %s \n", mo.getField("Id"));
 					com.sforce.soap.partner.Error[] errors = sr.getErrors();
 					for (com.sforce.soap.partner.Error error : errors) {
@@ -1973,19 +1976,19 @@ public class GeneralMethods {
 			}
 
 		}
-		return srs;
+		return srsAll;
 	}
-	
+
 	//call to validate SObject and get all fields about object
-    /**
-     * Calls Salesforce and passes an Sobject for Description. This will describeSObject 
-     * if Salesforce finds it else it hits a Api Query Fault
-     * 
-     *
-     * @param apiObjectName The <code>SObject.name</code> to be checked against
-     * @param pConnection Partner Connection 
-     * @throws Exception 
-     */
+	/**
+	 * Calls Salesforce and passes an Sobject for Description. This will describeSObject 
+	 * if Salesforce finds it else it hits a Api Query Fault
+	 * 
+	 *
+	 * @param apiObjectName The <code>SObject.name</code> to be checked against
+	 * @param pConnection Partner Connection 
+	 * @throws Exception 
+	 */
 	public static DescribeSObjectResult validateObject(String apiObjectName, PartnerConnection pConnection) throws Exception {
 		// TODO Auto-generated method stub
 
@@ -1993,19 +1996,19 @@ public class GeneralMethods {
 			DescribeSObjectResult sObj = pConnection.describeSObject(apiObjectName);
 			return sObj;
 		}catch (ApiQueryFault e) {
-			
+
 			throw new Exception("Sobject invalid: " + apiObjectName + ", Cannot continue");
 		}
-	
+
 	}
-	
+
 	/**
 	 * 
 	 * @param headers
 	 * @param sObjResult
 	 * @return
 	 */
-	
+
 	//validate headers against fields in describe result
 	public static HashMap<String, String> validateHeaders(String[] headers, DescribeSObjectResult sObjResult) {
 		// TODO Auto-generated method stub
@@ -2129,7 +2132,7 @@ public class GeneralMethods {
 
 		return id+suffix;
 	}
-	
+
 	//check if file exists
 	public static boolean doesFileExist(String queryMap) {
 		File test = new File(queryMap);
@@ -2138,7 +2141,7 @@ public class GeneralMethods {
 		}
 		return true;
 	}
-	
+
 	//basic out for saved results
 	public static void saveResults(SaveResult[] results) throws IOException {
 		// TODO Auto-generated method stub
@@ -2151,15 +2154,131 @@ public class GeneralMethods {
 			writer.writeNext(line);
 		}
 		writer.close();
-		
+
+		p("Printed results out to: " + filename);
+	}
+
+	//basic out for saved results
+	public static void saveResultsArray(ArrayList<SaveResult[]> results, String string) throws IOException {
+		// TODO Auto-generated method stub
+		String filename = "SuccessResults" + string;
+		CSVWriter writer = new CSVWriter(new FileWriter(filename));	
+		String[] header = {"id","success","errors"};
+		writer.writeNext(header);
+		for(SaveResult[] res:results) {
+			for(SaveResult r:res) {
+				String [] line = {r.getId(),String.valueOf(r.isSuccess()),(r.getErrors().length>0 ? r.getErrors()[0].getMessage():"")};
+				writer.writeNext(line);
+			}
+		}
+
+		writer.close();
+
 		p("Printed results out to: " + filename);
 	}
 	
+	//soap call at 200 records a batch
+	public static ArrayList<DeleteResult[]> deleteRecords(PartnerConnection connection, ArrayList<String> finalList) throws ConnectionException {
+		ArrayList<DeleteResult[]> drsAll= new ArrayList<DeleteResult[]>();
+		DeleteResult[] drs=null;
+		int listSize = finalList.size();
+		for (int batch = 0; finalList.size()>batch;){
+
+			List<String> batchList = finalList.subList(batch, batch = batch + 200 >listSize-1 ? listSize : batch + 200 );
+		    String [] deleteBatch =batchList.toArray(new String [0]);
+
+		    drs = connection.delete(batchList.toArray(deleteBatch));
+			drsAll.add(drs);
+			System.out.printf("Received %d SaveResults back\n", drs.length);
+			int srIndex = 0;
+			for (DeleteResult dr : drs) {
+				if (!dr.isSuccess()) {
+					String mo = finalList.get(srIndex);
+					dr.setId(mo);
+					System.out.printf("Error Updating %s \n", mo);
+					com.sforce.soap.partner.Error[] errors = dr.getErrors();
+					for (com.sforce.soap.partner.Error error : errors) {
+						System.out.println(error.getMessage());
+					}
+				}
+				srIndex++;
+			}
+
+		}
+		return drsAll;
+	}
+
+	//basic out for saved results
+	public static void deleteResultsArray(ArrayList<DeleteResult[]> results, String string) throws IOException {
+		// TODO Auto-generated method stub
+		String filename = "DeleteResults" + string;
+		CSVWriter writer = new CSVWriter(new FileWriter(filename));	
+		String[] header = {"id","success","errors"};
+		writer.writeNext(header);
+		for(DeleteResult[] res:results) {
+			for(DeleteResult r:res) {
+				String [] line = {r.getId(),String.valueOf(r.isSuccess()),(r.getErrors().length>0 ? r.getErrors()[0].getMessage():"")};
+				writer.writeNext(line);
+			}
+		}
+
+		writer.close();
+
+		p("Printed results out to: " + filename);
+	}
+
+	//method to do a forupdate against all data from file, each field type needs to be parsed correctly and added to list of sobjects
+	public static ArrayList<String> setRecordsForDelete(ArrayList<HashMap<String, String>> records) throws ConnectionException, ParseException {
+		//container for final list of sobjects
+		ArrayList<String> finalList = new ArrayList<String>();
+
+		for (HashMap<String, String> r : records) {
+			//all headers have been lowercased for consistency
+			finalList.add(r.get("id"));
+		}
+
+		return finalList;
+
+	}
+
 	//quickprint
 	public static void p(String string) {
 
 		System.out.println(string);
 
+	}
+
+	public static void resetPasswords(PartnerConnection pConn, List<String> ids, String dummyPassword) throws ConnectionException{
+		
+		if(ids.size()>0){
+
+			System.out.println("Setting passwords to dummy password");
+			for(String id:ids){
+				pConn.setPassword(id, dummyPassword);
+			}
+
+		}else{
+			System.out.println("Id list is null, no need for reset yet");
+		}
+	}
+	
+   public void resetPasswords(List<String> ids, String dummyPassword) throws ConnectionException{
+		
+	   setPartnerConnection();
+		if(ids.size()>0){
+
+			System.out.println("Setting passwords to dummy password");
+			for(String id:ids){
+				try {
+				sfdcPartner.setPassword(id, dummyPassword);
+				}catch (ConnectionException e) {
+					p(e.getMessage() + " " + id);
+				}
+			}
+
+		}else{
+			System.out.println("Id list is null, no need for reset yet");
+		}
 	}
 
 }
