@@ -1,0 +1,39 @@
+<project name="RunSalesforceMethods" basedir="." xmlns:sf="antlib:com.salesforce" >
+	<property environment="env" />
+	<property name="BUILD_NUMBER" value="${env.BUILD_NUMBER}" />
+	<property name="BUILD_URL" value="${env.BUILD_URL}" />
+
+	<target name="UserExpirationManagment" depends="compile">
+		<!--copy file="${basedir}/Upload_Log_File" todir="${basedir}/${env.BUILD_NUMBER}/Objects" /-->	
+		<java classname="ScriptFeeder">
+			<classpath>
+				<pathelement path="target/classes" />
+				<pathelement path="lib/force-partner-api-44.0.0.jar"/>
+				<pathelement path="lib/force-wsc-46.1.0.jar"/>
+				<pathelement path="lib/force-metadata-api.jar"/>
+				<pathelement path="lib/tooling46.jar"/>
+				<pathelement path="lib/opencsv.jar"/>
+				<pathelement path="lib/java-getopt-1.0.13.jar"/>
+				<pathelement path="lib/sfdc_crossinstancewsdl.jar"/>
+			</classpath>
+			<!--arg value= /-->
+		</java>
+	</target>
+
+	<target name="compile">
+		<mkdir dir="target/classes" />
+		<javac srcdir="src" destdir="target/classes"  includeantruntime="true">
+			<classpath>
+				<pathelement path="target/classes" />
+				<pathelement path="lib/force-partner-api-44.0.0.jar"/>
+				<pathelement path="lib/force-wsc-46.1.0.jar"/>
+				<pathelement path="lib/force-metadata-api.jar"/>
+				<pathelement path="lib/tooling46.jar"/>
+				<pathelement path="lib/javax.mail-1.4.7.jar"/>
+				<pathelement path="lib/opencsv.jar"/>
+				<pathelement path="lib/java-getopt-1.0.13.jar"/>
+				<pathelement path="lib/sfdc_crossinstancewsdl.jar"/>
+			</classpath>
+		</javac>
+	</target>
+</project>
